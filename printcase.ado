@@ -2,12 +2,14 @@
 program printcase
     version 16.0
 
-	syntax anything [if] [in] [, pdf file(string) location(string) font(string) noempty noanswer(string asis) ]
+	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty noanswer(string asis)]
 	tokenize `anything'
 	local varName `1'
 	local varNum `2'
     //Setting up word documents, either pdf or word
     
+	display "ID Variable: `varName'"
+	display "ID Value: `varNum'"
 	
 	if("`font'" == "") {
 		local docFont = "Calibri"
@@ -93,7 +95,7 @@ program printcase
        quietly levelsof `var' if `varName' == `varNum', clean missing
 	   //if variable has no labelbook
 	   if(`"`varlabel'"' == ""){
-			if "`empty'"!="" & ("`r(levels)'" == "." | "`r(levels)'" == "") {
+			if "`empty'"!="" & (regexm("`r(levels)'", "(^\.[a-z]?$)|(^\s*$)")) {
 				if("`pdf'"!=""){
 					putpdf table tbl(`i', .), drop
 				}
@@ -135,7 +137,7 @@ program printcase
 			else if "`r(levels)'" != "" & "`value_label'"=="" {
 				local value_label = "`r(levels)'"
 			}
-			if "`empty'"!="" & ("`value_label'" == "." | "`value_label'" == "") {
+			if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
 				if("`pdf'"!=""){
 					putpdf table tbl(`i', .), drop
 				}
