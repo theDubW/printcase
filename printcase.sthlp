@@ -73,9 +73,9 @@ code (“.”, “.d”, etc.). If not specified, all empty responses will be in
 {pstd}
 General example{p_end}
 {phang2}
-{cmd:. sysuse nlsw88}{p_end}
+{cmd:. sysuse nlsw88, clear}{p_end}
 {phang2}
-{cmd:. printcase idcode 9, pdf file("sample") font("Arial") noanswer("0")}
+{cmd:. printcase idcode 9, pdf file("sample") font("Arial")}
 
 
 {title:Author}
