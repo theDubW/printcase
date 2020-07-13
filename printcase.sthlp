@@ -17,8 +17,7 @@
  {cmd:font(}{it:string}{cmd:)}
  {cmd:file(}{it:string}{cmd:)}
  {cmd:location(}{it:string}{cmd:)}
- {cmd:noempty}
- {cmd:noanswer(}{it:string asis}{cmd:)}]
+ {cmd:noempty}]
  
 	Given the {it:id_variable} in the current dataset, the case whose response to
 	{it:id_variable} is equal to {it:id_val} will be used by printcase as
@@ -38,8 +37,8 @@ corresponding labels, and all responses as their corresponding value labels.
 
 {phang}
 {opt pdf} sets the output of printcase to be a PDF file
-instead of the default Microsoft Word fFile. All other options are
-unaffected by selecting pdf, however page numbers and footers are not
+instead of the default Microsoft Word file. All other options are
+unaffected by selecting {opt pdf}, however page numbers and footers are not
 generated, whereas they are in Microsoft Word.
 
 {phang}
@@ -48,11 +47,12 @@ the output of printcase. Any installed font can be specified. If not
 set, the default is Calibri.
 
 {phang}
-{opt file(string)} initializes the name of the output document. If
-included, the file will save to filename.docx or filename.pdf.
-Otherwise, the default filename “`id_variable’`id_val’” will be used.
-For example, if id_variable was “id” and id_val was 13, then not
-specifying the option would result in the output file “id13.docx”.
+{opt file(string)} initializes the name of the output document. For
+example, specifying {opt file("example")}, will result in the output being
+either “example.docx” or “example.pdf”. Otherwise, the default filename
+“`id_variable'`id_val'” will be used. For example, if id_variable was
+“id” and id_val was 13, then not specifying the option would result
+in the output file being called “id13.docx” or "id13.pdf".
 
 {phang}
 {opt location(string)} sets the folder to save the printed case. To save
@@ -63,18 +63,9 @@ location(..\..\subfolder). If location is not specified, the output file
 will be saved in the current working directory, usually that of the open dataset. 
 
 {phang}
-{opt noempty} specifies to suppress empty value labels from the resulting
-table, if the value label is an empty string (i.e., “”) or a Stata missing value code (“.”, “.d”, etc.).
-If not specified, all empty variables will be included.
-
-{phang}
-{opt noanswer(string asis)} specifies to suppress particular variables
-and their responses in the output document if the case's response to the
-variable matches with any string in the list of strings provided in the
-argument of noanswer. For example, if noanswer("ignorestring1" "ignorestring2")
-was specified as an option, then any response equal to either "ignorestring1"
-or "ignorestring2" will be suppressed. There is no limit on the number of
-responses to ignore, and each string to be ignored must be in quotes.
+{opt noempty} specifies to suppress empty responses and their variables from the resulting
+table, if the value label is an empty string (i.e., “”) or a Stata missing value
+code (“.”, “.d”, etc.). If not specified, all empty responses will be included.
 
 
 {title:Examples}

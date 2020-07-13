@@ -2,11 +2,11 @@
 program printcase
     version 16.0
 
-	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty noanswer(string asis)]
+	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty]
 	tokenize `anything'
 	local varName `1'
 	local varNum `2'
-    //Setting up word documents, either pdf or word
+    //Setting up documents, either pdf or word
     
 	display "ID Variable: `varName'"
 	display "ID Value: `varNum'"
@@ -33,11 +33,6 @@ program printcase
 		putpdf text (`"`myFile'"'), font("`docFont'",20)
 		putpdf paragraph
 		putpdf text ("Date Printed: `c(current_date)'"), font("`docFont'",20)
-		
-		//Pagenumbers + footer1
-// 		putpdf paragraph
-// 		putpdf pagenumber
-// 		putpdf text("		printcase_`varNum'_`myFile'")
 		
 		putpdf paragraph
 	}
@@ -105,20 +100,6 @@ program printcase
 				local i = `i'-1
 				local skipRow = 1
 			} 
-			else if `"`noanswer'"' != "" {
-				foreach ignore of local noanswer {
-					if(`"`r(levels)'"' == `"`ignore'"'){
-						if("`pdf'"!=""){
-							putpdf table tbl(`i', .), drop
-						}
-						else{
-							putdocx table tbl(`i', .), drop
-						}
-						local i = `i'-1
-						local skipRow = 1
-					}
-				}
-			}
 			if `skipRow' != 1 {
 				local toPrint = `"`r(levels)'"'
 				if("`pdf'"!=""){
@@ -146,20 +127,6 @@ program printcase
 				}
 				local i = `i'-1
 				local skipRow = 1
-			}
-			else if `"`noanswer'"' != "" {
-				foreach ignore of local noanswer {
-					if("`value_label'" == `"`ignore'"'){
-						if("`pdf'"!=""){
-							putpdf table tbl(`i', .), drop
-						}
-						else{
-							putdocx table tbl(`i', .), drop
-						}
-						local i = `i'-1
-						local skipRow = 1
-					}
-				}
 			}
 			if(`skipRow' != 1){
 				if("`pdf'"!=""){
@@ -199,9 +166,8 @@ program printcase
        local i = `i'+1
     }
 	
-	//filename andd location options
+	//filename and location options
 	if "`file'" == "" & "`location'" == ""{
-// 		display "Printed contents of `varName' `varNum' in `c(pwd)'/`varName'`varNum'.docx"
 		if("`pdf'"!=""){
 			putpdf save "`varName'`varNum'.pdf", replace
 		}
@@ -211,7 +177,6 @@ program printcase
 		
 	}
     else if "`file'" == "" & "`location'" != "" {
-// 		display "Printed contents of `varName' `varNum' in `location'/`varName'`varNum'.docx"
 		if("`pdf'"!=""){
 			putpdf save "`location'/`varName'`varNum'", replace
 		}
@@ -220,7 +185,6 @@ program printcase
 		}
 	}
 	else if "`file'" != "" & "`location'" == "" {
-// 		display "Printed contents of `varName' `varNum' in `c(pwd)'/`file'.docx"
 		if("`pdf'"!=""){
 			putpdf save "`file'", replace
 		}
@@ -230,7 +194,6 @@ program printcase
 		
 	}
 	else {
-// 		display "Printed contents of `varName' `varNum' in `location'/`file'.docx"
 		if("`pdf'"!=""){
 			putpdf save "`location'/`file'", replace
 		}
