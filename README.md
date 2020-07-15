@@ -57,11 +57,12 @@ _code (&quot;.&quot;, &quot;.d&quot;, etc.). If not specified, all empty respons
 
 There are many reasons that reading questionnaires vertically has never caught on as standard practice in survey research. Questionnaires need to be stored carefully and kept confidential. Paper is heavy and difficult to transport. Oftentimes, the paper questionnaires have already been destroyed as part of the data security protocols. And the quantitative scholar&#39;s goal of make inferences fundamentally rests on our ability to identify statistical regularities -- not over-interpret particular cases. Still, the ability to look closely at a single case is sometimes valuable. In particular, being able to produce a neat, readable quasi-questionnaire directly from a dataset – without headache – when necessary will enhance the workflow of data collection for many fieldworkers.
 
-4 Brief Example ![](RackMultipart20200715-4-7cqgjj_html_e33ef5a75a967db8.gif)
+# Brief Example 
+![alt text](https://github.com/theDubW/printcase/blob/master/Images/examplecode.PNG?raw=true)
 
 In this example, the researcher first loads the model births recode dataset from the DHS (ICF 2020). The researcher would like to vertically read the answers provided by the 100th individual using printcase, so they then generate an ID variable called &quot;id&quot;, simply sequentially numbering each response. Finally, the researcher uses printcase, with the arguments &quot;id&quot; for the ID variable, and 100 for the chosen ID to analyze. The options chosen are a pdf output format, Arial font, naming the file &quot;sample.pdf&quot;, to save it in the subfolder called &quot;Output&quot;, and to remove any responses which are empty from the output document.
 
-![](RackMultipart20200715-4-7cqgjj_html_47391a1f716dfad8.png)
+![alt text](https://github.com/theDubW/printcase/blob/master/Images/Capture.PNG?raw=true)
 
 Figure 1. Screenshot of sample.pdf, the output of _printcase_ command from the example.
 
