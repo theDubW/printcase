@@ -4,14 +4,13 @@ Max Weinreb, Austin, TX
 
 Jenny Trinitapoli, Chicago, IL, jennytrini@uchicago.edu
 
-**Abstract.** In this report, we introduce the _printcase_command for outputting data from a specific observation or case into an easy-to-read Microsoft Word or PDF document. pr_intcase_allows analysts to focus on a single observation within a dataset and view that observation in its entirety. The output displays all fields associated with one particular observation in table format, with all variables identified by their corresponding label and all codes their corresponding value labels. We 1) explain how _printcase_ works, 2) give examples of circumstances under which this type of table-based, quasi-questionnaire would be useful to analysts, and 3) provide Stata code for &quot;printing&quot; single cases.
+**Abstract.** In this report, we introduce the _printcase_ command for outputting data from a specific observation or case into an easy-to-read Microsoft Word or PDF document. _printcase_ allows analysts to focus on a single observation within a dataset and view that observation in its entirety. The output displays all fields associated with one particular observation in table format, with all variables identified by their corresponding label and all codes their corresponding value labels. We 1) explain how _printcase_ works, 2) give examples of circumstances under which this type of table-based, quasi-questionnaire would be useful to analysts, and 3) provide Stata code for &quot;printing&quot; single cases.
 
 **Keywords.** survey research, fieldwork, data quality, interviewer training, printcase
 
-1.
 # Introduction
 
-_printcase_is a Stata command analysts can use to generate a table of variables and responses, specific to a uniquely identified observation from any .dta file.
+_printcase_ is a Stata command analysts can use to generate a table of variables and responses, specific to a uniquely identified observation from any .dta file.
 
 There are times when examining a copy of a single survey is valuable to improve comprehension and generate new insights. But in the era of e-tablet modes of data collection, producing something that allows one to look at a single survey in a format resembling a paper questionnaire is surprisingly difficult. _printcase_ addresses this need by providing researchers with an abbreviated quasi-questionnaire generated from responses for a particular case in a data file. When survey items (questions and value labels) are fully labeled, the printed case can proxy a completed survey, much like what we used in the days of pencil-and-paper questionnaires.
 
@@ -29,12 +28,10 @@ _printcase_ cannot replace the designed questionnaire, but it can quickly produc
 
 Fieldwork supervisors, responsible for ensuring data quality, may also want to browse printed cases to check the quality of interviewers&#39; work and provide additional support and training where necessary. For example, if one interviewer is entering more &quot;refused to answer&quot; responses than others, they may need to introduce a particular topic with more sensitivity or learn how to probe more effectively. By browsing particular questionnaires with a focus on the interviewer&#39;s work, supervisors can catch and remedy interviewer-specific errors before they are manifest too deeply in the entire data-collection enterprise.
 
-1.
 # The printcase command
 
 _printcase_ is meant to be used with a dataset that has been painstakingly labeled with variable names and corresponding variable labels. The dataset must be organized by unique id (numeric, of any number format) assigned to each individual/case. The output of _printcase_ is a table three columns wide, which displays: 1) variable name, 2) variable label, and 3) response value. The first row contains the column labels, and one row is generated for every variable in the dataset, unless otherwise specified (see below).
 
-  1.
 ### Syntax
 
 _printcase __id\_variable id\_val__ [, options]_
@@ -55,7 +52,7 @@ _table, if the value label is an empty string (i.e., &quot;&quot;) or a Stata mi
 
 _code (&quot;.&quot;, &quot;.d&quot;, etc.). If not specified, all empty responses will be included._
 
-1.
+
 # Conclusion
 
 There are many reasons that reading questionnaires vertically has never caught on as standard practice in survey research. Questionnaires need to be stored carefully and kept confidential. Paper is heavy and difficult to transport. Oftentimes, the paper questionnaires have already been destroyed as part of the data security protocols. And the quantitative scholar&#39;s goal of make inferences fundamentally rests on our ability to identify statistical regularities -- not over-interpret particular cases. Still, the ability to look closely at a single case is sometimes valuable. In particular, being able to produce a neat, readable quasi-questionnaire directly from a dataset – without headache – when necessary will enhance the workflow of data collection for many fieldworkers.
@@ -101,5 +98,3 @@ Waal, Ton de, Jeroen Pannekoek, and Sander Scholtus. 2011. _Handbook of Statisti
 Max Weinreb is a high school student at the Liberal Arts and Science Academy in Austin, Texas. His interests include studying computer science and business, and he hopes to continue his education in those fields in college. He was the creator of the printcase command.
 
 Jenny Trinitapoli is associate professor of sociology at the University of Chicago. Since 2009, she has been PI of the Tsogolo La Thanzi project, through which she has spearheaded the collection of 12 rounds of data from over 3000 respondents in Balaka, Malawi. She envisioned and commissioned the printcase command out of necessity, when transitioning from paper-based to e-tablet data collection with an experienced data collection team.
-
-21
