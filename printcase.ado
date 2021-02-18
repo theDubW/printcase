@@ -2,7 +2,7 @@
 program printcase
     version 16.0
 
-	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty]
+	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty noreplace]
 	tokenize `anything'
 	local varName `1'
 	local varNum `2'
@@ -167,38 +167,42 @@ program printcase
     }
 	
 	//filename and location options
+	local temp_replace = "replace"
+	if("`replace'"!=""){
+		local temp_replace = ""
+	}
 	if "`file'" == "" & "`location'" == ""{
 		if("`pdf'"!=""){
-			putpdf save "`varName'`varNum'.pdf", replace
+			putpdf save "`varName'`varNum'.pdf", `temp_replace'
 		}
 		else{
-			putdocx save "`varName'`varNum'.docx", replace
+			putdocx save "`varName'`varNum'.docx", `temp_replace'
 		}
 		
 	}
     else if "`file'" == "" & "`location'" != "" {
 		if("`pdf'"!=""){
-			putpdf save "`location'/`varName'`varNum'", replace
+			putpdf save "`location'/`varName'`varNum'", `temp_replace'
 		}
 		else{
-			putdocx save "`location'/`varName'`varNum'", replace
+			putdocx save "`location'/`varName'`varNum'", `temp_replace'
 		}
 	}
 	else if "`file'" != "" & "`location'" == "" {
 		if("`pdf'"!=""){
-			putpdf save "`file'", replace
+			putpdf save "`file'", `temp_replace'
 		}
 		else{
-			putdocx save "`file'", replace
+			putdocx save "`file'", `temp_replace'
 		}
 		
 	}
 	else {
 		if("`pdf'"!=""){
-			putpdf save "`location'/`file'", replace
+			putpdf save "`location'/`file'", `temp_replace'
 		}
 		else{
-			putdocx save "`location'/`file'", replace
+			putdocx save "`location'/`file'", `temp_replace'
 		}
 		
 	}
