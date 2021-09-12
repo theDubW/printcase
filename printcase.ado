@@ -1,8 +1,8 @@
 //MADE BY MAX WEINREB
 program printcase
-    version 16.0
+    version 17.0
 
-	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty noreplace]
+	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty ignore(string) noreplace]
 	tokenize `anything'
 	local varName `1'
 	local varNum `2'
@@ -99,7 +99,21 @@ program printcase
 				}
 				local i = `i'-1
 				local skipRow = 1
-			} 
+			}
+			else if `"`ignore'"' != "" {
+				foreach skip of local ignore {
+					if(`"`r(levels)'"' == `"`skip'"'){
+						if("`pdf'"!=""){
+							putpdf table tbl(`i', .), drop
+						}
+						else{
+							putdocx table tbl(`i', .), drop
+						}
+						local i = `i'-1
+						local skipRow = 1
+					}
+				}
+			}
 			if `skipRow' != 1 {
 				local toPrint = `"`r(levels)'"'
 				if("`pdf'"!=""){
@@ -127,6 +141,20 @@ program printcase
 				}
 				local i = `i'-1
 				local skipRow = 1
+			}
+			else if `"`ignore'"' != "" {
+				foreach skip of local ignore {
+					if("`value_label'" == `"`skip'"'){
+						if("`pdf'"!=""){
+							putpdf table tbl(`i', .), drop
+						}
+						else{
+							putdocx table tbl(`i', .), drop
+						}
+						local i = `i'-1
+						local skipRow = 1
+					}
+				}
 			}
 			if(`skipRow' != 1){
 				if("`pdf'"!=""){
