@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty ignore(string) noreplace]
+	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty ignore(string) noreplace addnotes]
 	tokenize `anything'
 	local varName `1'
 	local varNum `2'
@@ -87,7 +87,7 @@ program printcase
 	   //Response for case
 	   local skipRow = 0
 	   local varlabel : value label `var'
-       quietly levelsof `var' if `varName' == `varNum', clean missing
+       quietly levelsof `var' if `varName' == `varNum', clean
 	   //if variable has no labelbook
 	   if(`"`varlabel'"' == ""){
 			if "`empty'"!="" & (regexm("`r(levels)'", "(^\.[a-z]?$)|(^\s*$)")) {
@@ -125,6 +125,10 @@ program printcase
 			}
 	   }
 	   else {
+			//account for missing values in labelbook
+			if("`r(levels)'"==""){
+				quietly levelsof `var' if `varName' == `varNum', clean missing
+			}
 			local value_label : label `varlabel' `r(levels)', strict
 			local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
 			if "`value_label'"!=""{
@@ -182,11 +186,18 @@ program printcase
 		   local label : variable label `var'
 		   local toPrintLabel = `"`label'"'
 		   local toPrintLabel : subinstr local toPrintLabel "`=char(96)'" "`=uchar(8219)'", all
+		   if("`addnotes'"!=""){
+			local toPrintNote : char `var'[note1]
+			if("`toPrintNote'"!=""){
+				local toPrintNote = " (`toPrintNote')"
+			}
+		   }
+
 		   if("`pdf'"!=""){
-		   	putpdf table tbl(`i', 2) = (`"`toPrintLabel'"')
+		   	putpdf table tbl(`i', 2) = (`"`toPrintLabel'`toPrintNote'"')
 		   }
 		   else{
-		   	putdocx table tbl(`i', 2) = (`"`toPrintLabel'"')
+		   	putdocx table tbl(`i', 2) = (`"`toPrintLabel'`toPrintNote'"')
 		   }
 		   
 	   }
