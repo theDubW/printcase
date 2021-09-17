@@ -2,17 +2,17 @@
 program printcase
     version 17.0
 
-	syntax anything(id="ID Variable and ID Value"), [pdf file(string) location(string) font(string) noempty ignore(string) noreplace addnotes]
-	tokenize `anything'
-	local varName `1'
-	local varNum `2'
+	syntax [using/] if/ =/exp, [pdf font(string) noempty ignore(string) noreplace addnotes]
+	local varName `if'
+	local varNum `exp'
+	local fileName `using'
     //Setting up documents, either pdf or word
     
 	display "ID Variable: `varName'"
 	display "ID Value: `varNum'"
 	
 	if("`font'" == "") {
-		local docFont = "Calibri"
+		local docFont = "Arial"
 	}
 	else {
 		local docFont = "`font'"
@@ -210,39 +210,21 @@ program printcase
 	if("`replace'"!=""){
 		local temp_replace = ""
 	}
-	if "`file'" == "" & "`location'" == ""{
+	
+	if("`using'"!=""){
 		if("`pdf'"!=""){
-			putpdf save "`varName'`varNum'.pdf", `temp_replace'
+			putpdf save "`using'", `temp_replace'
 		}
 		else{
-			putdocx save "`varName'`varNum'.docx", `temp_replace'
-		}
-		
-	}
-    else if "`file'" == "" & "`location'" != "" {
-		if("`pdf'"!=""){
-			putpdf save "`location'/`varName'`varNum'", `temp_replace'
-		}
-		else{
-			putdocx save "`location'/`varName'`varNum'", `temp_replace'
+			putdocx save "`fileName'", `temp_replace'
 		}
 	}
-	else if "`file'" != "" & "`location'" == "" {
+	else{
 		if("`pdf'"!=""){
-			putpdf save "`file'", `temp_replace'
+			putpdf save "`varName'`varNum'", `temp_replace'
 		}
 		else{
-			putdocx save "`file'", `temp_replace'
+			putdocx save "`varName'`varNum'", `temp_replace'
 		}
-		
-	}
-	else {
-		if("`pdf'"!=""){
-			putpdf save "`location'/`file'", `temp_replace'
-		}
-		else{
-			putdocx save "`location'/`file'", `temp_replace'
-		}
-		
 	}
 end
