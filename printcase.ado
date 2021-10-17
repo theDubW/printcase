@@ -4,7 +4,6 @@ program printcase
 
 	syntax [using/] if/ =/exp, [pdf font(string) noempty ignore(string) replace addnotes longitudinal(integer 1)]
 	
-// 	split `if', p(" == ")
 	local varName `if'
 	
 	local varNum `exp'
@@ -83,7 +82,7 @@ program printcase
 	if("`longitudinal'" != ""){
 		while (`col' <= `numColumns'){
 			local col = `col'-2
-			local result = "Result (wave "
+			local result = "Response (wave "
 			local result = "`result'" + "`col'" + ")"
 			local col = `col' + 2
  			`doccmd' table tbl(1,`col') = ("`result'")
@@ -91,7 +90,7 @@ program printcase
 		}
 	} 
 	else {
-		`doccmd' table tbl(1, 3) = ("Response Value")
+		`doccmd' table tbl(1, 3) = ("Response")
 	}
 	
 
