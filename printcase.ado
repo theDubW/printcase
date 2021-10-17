@@ -2,8 +2,11 @@
 program printcase
     version 17.0
 
-	syntax [using/] if/ =/exp, [pdf font(string) noempty ignore(string) noreplace addnotes]
+	syntax [using/] if/ =/exp, [pdf font(string) noempty ignore(string) replace addnotes longitudinal(integer 1)]
+	
+// 	split `if', p(" == ")
 	local varName `if'
+	
 	local varNum `exp'
 	local fileName `using'
     //Setting up documents, either pdf or word
@@ -17,10 +20,15 @@ program printcase
 	else {
 		local docFont = "`font'"
 	}
+	local doccmd putdocx
+	if "`pdf'" != ""{
+		local doccmd putpdf
+	}
 	local indexSlash = strrpos("`c(filename)'", "\") 
 	local myFile = substr("`c(filename)'", `indexSlash'+1, strlen("`c(filename)'")-`indexSlash')
+	`doccmd' clear
+	//Title and setting up document
 	if("`pdf'"!=""){
-		putpdf clear
 		putpdf begin, font("`docFont'")
 		//Title
 		putpdf paragraph
@@ -33,11 +41,8 @@ program printcase
 		putpdf text (`"`myFile'"'), font("`docFont'",20)
 		putpdf paragraph
 		putpdf text ("Date Printed: `c(current_date)'"), font("`docFont'",20)
-		
-		putpdf paragraph
 	}
 	else{
-		putdocx clear
 		putdocx begin, pagenum(decimal) footer(footer1) font("`docFont'")
 		//Title
 		putdocx paragraph, style(Title) 
@@ -56,32 +61,40 @@ program printcase
 		putdocx paragraph, tofooter(footer1)
 		putdocx pagenumber
 		putdocx text ("		printcase_`varNum'_`myFile'")
-		
-		putdocx paragraph
 	}
+	`doccmd' paragraph
 
-	
 
     //Retreiving list of variables
     quietly describe, varlist
 	local dataVars  `r(varlist)'
     local rowNum = `r(k)'
     local ++rowNum
-    //Making Table based on number of variables, with column titles
-	if("`pdf'"!=""){
-		putpdf table tbl = (`rowNum', 3)
-		putpdf table tbl(1,1) = ("Variable Name")
-		putpdf table tbl(1,2) = ("Variable Label")
-		putpdf table tbl(1,3) = ("Response Value")
-	}
-	else{
-		putdocx table tbl = (`rowNum', 3)
-		putdocx table tbl(1,1) = ("Variable Name")
-		putdocx table tbl(1,2) = ("Variable Label")
-		putdocx table tbl(1,3) = ("Response Value")
-	}
-    
+
 	
+    //Making Table based on number of variables, with column titles
+	local numColumns = `longitudinal'+2
+	`doccmd' table tbl = (`rowNum', `numColumns')
+	`doccmd' table tbl(1,1) = ("Variable Name")
+	`doccmd' table tbl(1,2) = ("Variable Label")
+	
+	//if longitudinal generate more response columns
+	local col = 3
+	if("`longitudinal'" != ""){
+		while (`col' <= `numColumns'){
+			local col = `col'-2
+			local result = "Result (wave "
+			local result = "`result'" + "`col'" + ")"
+			local col = `col' + 2
+ 			`doccmd' table tbl(1,`col') = ("`result'")
+			local col = `col' + 1
+		}
+	} 
+	else {
+		`doccmd' table tbl(1, 3) = ("Response Value")
+	}
+	
+
     local i = 2
     foreach var in `dataVars' {
 	   //Response for case
@@ -91,24 +104,14 @@ program printcase
 	   //if variable has no labelbook
 	   if(`"`varlabel'"' == ""){
 			if "`empty'"!="" & (regexm("`r(levels)'", "(^\.[a-z]?$)|(^\s*$)")) {
-				if("`pdf'"!=""){
-					putpdf table tbl(`i', .), drop
-				}
-				else{
-					putdocx table tbl(`i', .), drop
-				}
+				`doccmd' table tbl(`i', .), drop
 				local i = `i'-1
 				local skipRow = 1
 			}
 			else if `"`ignore'"' != "" {
 				foreach skip of local ignore {
 					if(`"`r(levels)'"' == `"`skip'"'){
-						if("`pdf'"!=""){
-							putpdf table tbl(`i', .), drop
-						}
-						else{
-							putdocx table tbl(`i', .), drop
-						}
+						`doccmd' table tbl(`i', .), drop
 						local i = `i'-1
 						local skipRow = 1
 					}
@@ -116,12 +119,12 @@ program printcase
 			}
 			if `skipRow' != 1 {
 				local toPrint = `"`r(levels)'"'
-				if("`pdf'"!=""){
-					putpdf table tbl(`i', 3) = (`"`toPrint'"')
+				local col = 3
+				foreach response in `r(levels)' {
+					`doccmd' table tbl(`i', `col') = ("`response'")
+					local col = `col' + 1
 				}
-				else{
-					putdocx table tbl(`i', 3) = (`"`toPrint'"')
-				}
+				
 			}
 	   }
 	   else {
@@ -129,75 +132,63 @@ program printcase
 			if("`r(levels)'"==""){
 				quietly levelsof `var' if `varName' == `varNum', clean missing
 			}
-			local value_label : label `varlabel' `r(levels)', strict
-			local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
-			if "`value_label'"!=""{
-			}
-			else if "`r(levels)'" != "" & "`value_label'"=="" {
-				local value_label = "`r(levels)'"
-			}
-			if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
-				if("`pdf'"!=""){
-					putpdf table tbl(`i', .), drop
+			local col = 3
+			foreach response in `r(levels)'{
+				
+				local value_label : label `varlabel' `response', strict
+				local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
+				if "`value_label'"!=""{
 				}
-				else{
-					putdocx table tbl(`i', .), drop
+				else if "`response'" != "" & "`value_label'"=="" {
+					local value_label = "`response'"
 				}
-				local i = `i'-1
-				local skipRow = 1
-			}
-			else if `"`ignore'"' != "" {
-				foreach skip of local ignore {
-					if("`value_label'" == `"`skip'"'){
-						if("`pdf'"!=""){
-							putpdf table tbl(`i', .), drop
+				if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
+					`doccmd' table tbl(`i', .), drop
+					local i = `i'-1
+					local skipRow = 1
+				}
+				else if `"`ignore'"' != "" {
+					foreach skip of local ignore {
+						if("`value_label'" == `"`skip'"'){
+							`doccmd' table tbl(`i', .), drop
+							local i = `i'-1
+							local skipRow = 1
 						}
-						else{
-							putdocx table tbl(`i', .), drop
-						}
-						local i = `i'-1
-						local skipRow = 1
 					}
 				}
-			}
-			if(`skipRow' != 1){
-				if("`pdf'"!=""){
-					putpdf table tbl(`i', 3) = (`"`value_label'"')
+				if(`skipRow' != 1){
+					`doccmd' table tbl(`i', `col') = (`"`value_label'"')
 				}
-				else{
-					putdocx table tbl(`i', 3) = (`"`value_label'"')
-				}
+				
+				local col = `col'+1
+				
 			}
+			
 	   }
 	   
 	   if(`skipRow' == 0) {
 		   // variable name
 		   local toPrintVar = `"`var'"'
 		   local toPrintVar : subinstr local toPrintVar "`=char(96)'" "`=uchar(8219)'", all
-		   if("`pdf'"!=""){
-			putpdf table tbl(`i', 1) = (`"`toPrintVar'"')
-		   }
-		   else{
-			putdocx table tbl(`i', 1) = (`"`toPrintVar'"')
-		   }
-		   
+		   `doccmd' table tbl(`i', 1) = (`"`toPrintVar'"')
 
 		   //variable label
 		   local label : variable label `var'
 		   local toPrintLabel = `"`label'"'
 		   local toPrintLabel : subinstr local toPrintLabel "`=char(96)'" "`=uchar(8219)'", all
 		   if("`addnotes'"!=""){
-			local toPrintNote : char `var'[note1]
-			if("`toPrintNote'"!=""){
-				local toPrintNote = " (`toPrintNote')"
-			}
-		   }
-
-		   if("`pdf'"!=""){
-		   	putpdf table tbl(`i', 2) = (`"`toPrintLabel'`toPrintNote'"')
+				local toPrintNote : char `var'[note1]
+				if("`toPrintNote'"!=""){
+					local toPrintNote = "N: `toPrintNote'"
+					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'"), linebreak
+					`doccmd' table tbl(`i', 2) = ("`toPrintNote'"), append font("`docFont'", 9)
+				}
+				else{
+					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
+				}
 		   }
 		   else{
-		   	putdocx table tbl(`i', 2) = (`"`toPrintLabel'`toPrintNote'"')
+				`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
 		   }
 		   
 	   }
@@ -206,25 +197,15 @@ program printcase
     }
 	
 	//filename and location options
-	local temp_replace = "replace"
+	local temp_replace = ""
 	if("`replace'"!=""){
-		local temp_replace = ""
+		local temp_replace = "replace"
 	}
 	
 	if("`using'"!=""){
-		if("`pdf'"!=""){
-			putpdf save "`using'", `temp_replace'
-		}
-		else{
-			putdocx save "`fileName'", `temp_replace'
-		}
+		`doccmd' save "`using'", `temp_replace'
 	}
 	else{
-		if("`pdf'"!=""){
-			putpdf save "`varName'`varNum'", `temp_replace'
-		}
-		else{
-			putdocx save "`varName'`varNum'", `temp_replace'
-		}
+		`doccmd' save "`varName'`varNum'", `temp_replace'
 	}
 end
