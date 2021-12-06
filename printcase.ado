@@ -8,6 +8,7 @@ program printcase
 	local varName = ""
 	local varNum = ""
 	
+	//Checking for correct syntax and assigning macros
 	if("`1'" != "using" & "`1'" != "if"){
 		display "Must follow printcase syntax"
 		error 198

@@ -81,7 +81,7 @@ General example{p_end}
 {phang2}
 {cmd:. sysuse nlsw88, clear}{p_end}
 {phang2}
-{cmd:. printcase idcode 9, pdf file("sample") font("Arial")}
+{cmd:. printcase using output.pdf if idcode == 9, pdf font("Times New Roman")}
 
 
 {title:Author}
