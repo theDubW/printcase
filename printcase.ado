@@ -2,14 +2,61 @@
 program printcase
     version 17.0
 
-	syntax [using/] if/ =/exp, [pdf font(string) noempty ignore(string) replace addnotes longitudinal(integer 1)]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes]
+	tokenize `anything'
+	local fileName = ""
+	local varName = ""
+	local varNum = ""
 	
-	local varName `if'
+	if("`1'" != "using" & "`1'" != "if"){
+		display "Must follow printcase syntax"
+		error 198
+	} 
+	else if("`1'" == "if"){
+		local varName `2'
+		if("`3'" != "=="){
+			display "Must have '==' expression"
+			error 198 
+		}
+		if("`4'" == ""){
+			display "Cannot have empty id_val"
+			error 198
+		}
+		local varNum `4'
+	} 
+	else {
+		local fileName = "`2'"
+		if("`3'" != "if"){
+			display "Must have if expression"
+			error 198 
+		}
+		local varName `4'
+		if("`5'" != "=="){
+			display "Must have '==' expression"
+			error 198
+		}
+		if("`6'" == ""){
+			display "Cannot have empty id_val"
+			error 198
+		}
+		local varNum `6'
+	}
+	//checking for extra unnecessary arguments
+	if("`fileName'" != ""){
+		if("`7'" != ""){
+			display "Too many arguments passed"
+			error 198
+		} 
+	}
+	else{
+		if("`5'" != ""){
+			display "Too many arguments passed"
+			error 198
+		}
+	}
 	
-	local varNum `exp'
-	local fileName `using'
+	
     //Setting up documents, either pdf or word
-    
 	display "ID Variable: `varName'"
 	display "ID Value: `varNum'"
 	
@@ -26,6 +73,8 @@ program printcase
 	local indexSlash = strrpos("`c(filename)'", "\") 
 	local myFile = substr("`c(filename)'", `indexSlash'+1, strlen("`c(filename)'")-`indexSlash')
 	`doccmd' clear
+	
+	
 	//Title and setting up document
 	if("`pdf'"!=""){
 		putpdf begin, font("`docFont'")
@@ -63,35 +112,17 @@ program printcase
 	}
 	`doccmd' paragraph
 
-
     //Retreiving list of variables
     quietly describe, varlist
 	local dataVars  `r(varlist)'
     local rowNum = `r(k)'
     local ++rowNum
 
-	
-    //Making Table based on number of variables, with column titles
-	local numColumns = `longitudinal'+2
-	`doccmd' table tbl = (`rowNum', `numColumns')
+    //Initializing table
+	`doccmd' table tbl = (`rowNum', 3)
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
-	
-	//if longitudinal generate more response columns
-	local col = 3
-	if("`longitudinal'" != ""){
-		while (`col' <= `numColumns'){
-			local col = `col'-2
-			local result = "Response (wave "
-			local result = "`result'" + "`col'" + ")"
-			local col = `col' + 2
- 			`doccmd' table tbl(1,`col') = ("`result'")
-			local col = `col' + 1
-		}
-	} 
-	else {
-		`doccmd' table tbl(1, 3) = ("Response")
-	}
+	`doccmd' table tbl(1, 3) = ("Response")
 	
 
     local i = 2
@@ -102,6 +133,7 @@ program printcase
        quietly levelsof `var' if `varName' == `varNum', clean
 	   //if variable has no labelbook
 	   if(`"`varlabel'"' == ""){
+			
 			if "`empty'"!="" & (regexm("`r(levels)'", "(^\.[a-z]?$)|(^\s*$)")) {
 				`doccmd' table tbl(`i', .), drop
 				local i = `i'-1
@@ -117,52 +149,38 @@ program printcase
 				}
 			}
 			if `skipRow' != 1 {
-				local toPrint = `"`r(levels)'"'
-				local col = 3
-				foreach response in `r(levels)' {
-					`doccmd' table tbl(`i', `col') = ("`response'")
-					local col = `col' + 1
-				}
-				
+				`doccmd' table tbl(`i', 3) = ("`r(levels)'")
 			}
 	   }
 	   else {
 			//account for missing values in labelbook
 			if("`r(levels)'"==""){
-				quietly levelsof `var' if `varName' == `varNum', clean missing
-			}
-			local col = 3
-			foreach response in `r(levels)'{
-				
-				local value_label : label `varlabel' `response', strict
-				local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
-				if "`value_label'"!=""{
-				}
-				else if "`response'" != "" & "`value_label'"=="" {
-					local value_label = "`response'"
-				}
-				if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
-					`doccmd' table tbl(`i', .), drop
-					local i = `i'-1
-					local skipRow = 1
-				}
-				else if `"`ignore'"' != "" {
-					foreach skip of local ignore {
-						if("`value_label'" == `"`skip'"'){
-							`doccmd' table tbl(`i', .), drop
-							local i = `i'-1
-							local skipRow = 1
-						}
-					}
-				}
-				if(`skipRow' != 1){
-					`doccmd' table tbl(`i', `col') = (`"`value_label'"')
-				}
-				
-				local col = `col'+1
-				
+				quietly levelsof `var' if `varName' == `varNum', missing
 			}
 			
+			local value_label : label `varlabel' `r(levels)', strict
+			local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
+			if  "`response'" != "" & "`value_label'"=="" {
+				local value_label = "`response'"
+			}
+			if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
+				`doccmd' table tbl(`i', .), drop
+				local i = `i'-1
+				local skipRow = 1
+			}
+			else if `"`ignore'"' != "" {
+				foreach skip of local ignore {
+					if("`value_label'" == `"`skip'"'){
+						`doccmd' table tbl(`i', .), drop
+						local i = `i'-1
+						local skipRow = 1
+					}
+				}
+			}
+			if(`skipRow' != 1){
+				`doccmd' table tbl(`i', 3) = ("`value_label'")
+			}		
+		
 	   }
 	   
 	   if(`skipRow' == 0) {
@@ -201,8 +219,8 @@ program printcase
 		local temp_replace = "replace"
 	}
 	
-	if("`using'"!=""){
-		`doccmd' save "`using'", `temp_replace'
+	if("`fileName'"!=""){
+		`doccmd' save "`fileName'", `temp_replace'
 	}
 	else{
 		`doccmd' save "`varName'`varNum'", `temp_replace'
