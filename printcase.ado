@@ -7,7 +7,7 @@ program printcase
 	local fileName = ""
 	local varName = ""
 	local varNum = ""
-	
+		
 	//Checking for correct syntax and assigning macros
 	if("`1'" != "using" & "`1'" != "if"){
 		display "Must follow printcase syntax"
@@ -132,25 +132,18 @@ program printcase
 	   local skipRow = 0
 	   local varlabel : value label `var'
        quietly levelsof `var' if `varName' == `varNum', clean
+	   
+	   local toPrintValue = "`r(levels)'"
 	   //if variable has no labelbook
 	   if(`"`varlabel'"' == ""){
-			
-			if "`empty'"!="" & (regexm("`r(levels)'", "(^\.[a-z]?$)|(^\s*$)")) {
-				`doccmd' table tbl(`i', .), drop
-				local i = `i'-1
-				local skipRow = 1
-			}
-			else if `"`ignore'"' != "" {
+			if `"`ignore'"' != "" {
 				foreach skip of local ignore {
-					if(`"`r(levels)'"' == `"`skip'"'){
+					if("`r(levels)'" == "`skip'"){
 						`doccmd' table tbl(`i', .), drop
 						local i = `i'-1
 						local skipRow = 1
 					}
 				}
-			}
-			if `skipRow' != 1 {
-				`doccmd' table tbl(`i', 3) = ("`r(levels)'")
 			}
 	   }
 	   else {
@@ -158,31 +151,34 @@ program printcase
 			if("`r(levels)'"==""){
 				quietly levelsof `var' if `varName' == `varNum', missing
 			}
-			
-			local value_label : label `varlabel' `r(levels)', strict
-			local value_label : subinstr local value_label "`=char(96)'" "`=uchar(8219)'", all
-			if  "`response'" != "" & "`value_label'"=="" {
-				local value_label = "`response'"
+			local toPrintValue : label `varlabel' `r(levels)', strict
+			//get rid of special character that cannot be outputted
+			local toPrintValue : subinstr local toPrintValue "`=char(96)'" "`=uchar(8219)'", all
+			if  "`r(levels)'" != "" & "`toPrintValue'"=="" {
+				local toPrintValue = "`r(levels)'"
 			}
-			if "`empty'"!="" & (regexm("`value_label'", "(^\.[a-z]?$)|(^\s*$)")) {
-				`doccmd' table tbl(`i', .), drop
-				local i = `i'-1
-				local skipRow = 1
-			}
-			else if `"`ignore'"' != "" {
-				foreach skip of local ignore {
-					if("`value_label'" == `"`skip'"'){
-						`doccmd' table tbl(`i', .), drop
-						local i = `i'-1
-						local skipRow = 1
-					}
-				}
-			}
-			if(`skipRow' != 1){
-				`doccmd' table tbl(`i', 3) = ("`value_label'")
-			}		
-		
 	   }
+	   
+	   //drop unwanted responses
+	   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) {
+			`doccmd' table tbl(`i', .), drop
+			local i = `i'-1
+			local skipRow = 1
+	   }
+	   if `"`ignore'"' != "" {
+		   foreach skip of local ignore {
+			   if("`toPrintValue'" == "`skip'"){
+				   `doccmd' table tbl(`i', .), drop
+				   local i = `i'-1
+				   local skipRow = 1
+			   }
+		   }
+	   }
+	   //print value
+	   if(`skipRow' != 1){
+			`doccmd' table tbl(`i', 3) = ("`toPrintValue'")
+	   }	
+	   
 	   
 	   if(`skipRow' == 0) {
 		   // variable name
