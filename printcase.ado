@@ -3,11 +3,24 @@ program printcase
     version 17.0
 
 	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes]
-	tokenize `anything'
+	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
 	local varNum = ""
-		
+	
+	if("`2'" != "=="){
+		display "Must have '==' expression"
+		error 198
+	}
+	
+	if("`3'" == ""){
+		display "Cannot have empty id_val"
+		error 198
+	}
+	local varNum = "`3'"
+	
+	tokenize "`1'"
+	
 	//Checking for correct syntax and assigning macros
 	if("`1'" != "using" & "`1'" != "if"){
 		display "Must follow printcase syntax"
@@ -15,15 +28,6 @@ program printcase
 	} 
 	else if("`1'" == "if"){
 		local varName `2'
-		if("`3'" != "=="){
-			display "Must have '==' expression"
-			error 198 
-		}
-		if("`4'" == ""){
-			display "Cannot have empty id_val"
-			error 198
-		}
-		local varNum `4'
 	} 
 	else {
 		local fileName = "`2'"
@@ -32,25 +36,16 @@ program printcase
 			error 198 
 		}
 		local varName `4'
-		if("`5'" != "=="){
-			display "Must have '==' expression"
-			error 198
-		}
-		if("`6'" == ""){
-			display "Cannot have empty id_val"
-			error 198
-		}
-		local varNum `6'
 	}
 	//checking for extra unnecessary arguments
 	if("`fileName'" != ""){
-		if("`7'" != ""){
+		if("`5'" != ""){
 			display "Too many arguments passed"
 			error 198
 		} 
 	}
 	else{
-		if("`5'" != ""){
+		if("`3'" != ""){
 			display "Too many arguments passed"
 			error 198
 		}
