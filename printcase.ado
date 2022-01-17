@@ -8,6 +8,7 @@ program printcase
 	local varName = ""
 	local varNum = ""
 	
+	//Checking for correct syntax and assigning macros
 	if("`2'" != "=="){
 		display "Must have '==' expression"
 		error 198
@@ -21,7 +22,6 @@ program printcase
 	
 	tokenize "`1'"
 	
-	//Checking for correct syntax and assigning macros
 	if("`1'" != "using" & "`1'" != "if"){
 		display "Must follow printcase syntax"
 		error 198
@@ -116,13 +116,16 @@ program printcase
 
     //Initializing table
 	`doccmd' table tbl = (`rowNum', 3)
+	
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
-	`doccmd' table tbl(1, 3) = ("Response")
-	
+	`doccmd' table tbl(1,3) = ("Response")
 
     local i = 2
     foreach var in `dataVars' {
+		//Prevent rows from overflowing to next page
+		`doccmd' table tbl(`i', .), nosplit
+
 	   //Response for case
 	   local skipRow = 0
 	   local varlabel : value label `var'
