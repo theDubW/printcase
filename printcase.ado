@@ -7,7 +7,7 @@ program printcase
 	local fileName = ""
 	local varName = ""
 	local varNum = ""
-	
+
 	//Checking for correct syntax and assigning macros
 	if("`2'" != "=="){
 		display "Must have '==' expression"
@@ -19,8 +19,8 @@ program printcase
 		error 198
 	}
 	local varNum = "`3'"
-	
-	tokenize "`1'"
+
+	tokenize `1'
 	
 	if("`1'" != "using" & "`1'" != "if"){
 		display "Must follow printcase syntax"
