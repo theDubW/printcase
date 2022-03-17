@@ -2,12 +2,12 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes width(string)]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
 	local varNum = ""
-
+	
 	//Checking for correct syntax and assigning macros
 	if("`2'" != "=="){
 		display "Must have '==' expression"
@@ -115,7 +115,13 @@ program printcase
     local ++rowNum
 
     //Initializing table
-	`doccmd' table tbl = (`rowNum', 3)
+	if("`width'" != ""){
+		`doccmd' table tbl = (`rowNum', 3), width(`width')
+	}
+	else {
+		`doccmd' table tbl = (`rowNum', 3)
+	}
+	
 	
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
