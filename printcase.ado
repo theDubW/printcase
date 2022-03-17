@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes width(string)]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes width(string) longitudinal]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
@@ -113,21 +113,46 @@ program printcase
 	local dataVars  `r(varlist)'
     local rowNum = `r(k)'
     local ++rowNum
+	
+	//if longitudinal find # columns, initiliaze longitudinal variable list
+	local colNum = 3
+	local numWaves = 1
+	tempvar id_wave
+	if("`longitudinal'" != ""){
+		preserve
+		//find # waves
+		quietly count if `varName' == `varNum'
+		local numWaves = `r(N)'
+		sort `varName'
+		quietly by `varName': generate `id_wave' = _n if `varName' == `varNum'
+		local colNum = 2+`numWaves'
+	}
 
     //Initializing table
 	if("`width'" != ""){
-		`doccmd' table tbl = (`rowNum', 3), width(`width')
+		`doccmd' table tbl = (`rowNum', `colNum'), width(`width')
 	}
 	else {
-		`doccmd' table tbl = (`rowNum', 3)
+		`doccmd' table tbl = (`rowNum', `colNum')
 	}
 	
 	
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
-	`doccmd' table tbl(1,3) = ("Response")
+	forvalues w = 1/`numWaves'{
+		local col = 2+`w'
+		`doccmd' table tbl(1,`col') = ("Response "+"`w'")
+	}
+	
 
     local i = 2
+	
+	//longitudinal plan: if selected, first find # variables with matching id_val
+	//preserve data, create temporary variable called id_wave = id_val_0...id_val_n n = # waves, add to list
+	//if longitudinal is selected, put levels of part in loop for each id_wave
+	//currently behavior for skip longitudinal is if one needs to be skipped they're all skipped
+	//also column names are always the same, "response 1" etc. leave like that?
+	
     foreach var in `dataVars' {
 		//Prevent rows from overflowing to next page
 		`doccmd' table tbl(`i', .), nosplit
@@ -135,81 +160,101 @@ program printcase
 	   //Response for case
 	   local skipRow = 0
 	   local varlabel : value label `var'
-       quietly levelsof `var' if `varName' == `varNum', clean
 	   
-	   local toPrintValue = "`r(levels)'"
-	   //if variable has no labelbook
-	   if(`"`varlabel'"' == ""){
-			if `"`ignore'"' != "" {
-				foreach skip of local ignore {
-					if("`r(levels)'" == "`skip'"){
-						`doccmd' table tbl(`i', .), drop
-						local i = `i'-1
-						local skipRow = 1
-					}
-				}
-			}
-	   }
-	   else {
-			//account for missing values in labelbook
-			if("`r(levels)'"==""){
-				quietly levelsof `var' if `varName' == `varNum', missing
-			}
-			local toPrintValue : label `varlabel' `r(levels)', strict
-			//get rid of special character that cannot be outputted
-			local toPrintValue : subinstr local toPrintValue "`=char(96)'" "`=uchar(8219)'", all
-			if  "`r(levels)'" != "" & "`toPrintValue'"=="" {
-				local toPrintValue = "`r(levels)'"
-			}
-	   }
-	   
-	   //drop unwanted responses
-	   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) {
-			`doccmd' table tbl(`i', .), drop
-			local i = `i'-1
-			local skipRow = 1
-	   }
-	   if `"`ignore'"' != "" {
-		   foreach skip of local ignore {
-			   if("`toPrintValue'" == "`skip'"){
-				   `doccmd' table tbl(`i', .), drop
-				   local i = `i'-1
-				   local skipRow = 1
-			   }
+	   forvalues wave = 1/`numWaves'{
+	   	
+		   if("`longitudinal'" != ""){
+				quietly levelsof `var' if `id_wave' == `wave', clean
 		   }
-	   }
-	   //print value
-	   if(`skipRow' != 1){
-			`doccmd' table tbl(`i', 3) = ("`toPrintValue'")
-	   }	
-	   
-	   
-	   if(`skipRow' == 0) {
-		   // variable name
-		   local toPrintVar = `"`var'"'
-		   local toPrintVar : subinstr local toPrintVar "`=char(96)'" "`=uchar(8219)'", all
-		   `doccmd' table tbl(`i', 1) = (`"`toPrintVar'"')
-
-		   //variable label
-		   local label : variable label `var'
-		   local toPrintLabel = `"`label'"'
-		   local toPrintLabel : subinstr local toPrintLabel "`=char(96)'" "`=uchar(8219)'", all
-		   if("`addnotes'"!=""){
-				local toPrintNote : char `var'[note1]
-				if("`toPrintNote'"!=""){
-					local toPrintNote = "N: `toPrintNote'"
-					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'"), linebreak
-					`doccmd' table tbl(`i', 2) = ("`toPrintNote'"), append font("`docFont'", 9)
-				}
-				else{
-					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
-				}
-		   }
-		   else{
-				`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
+		   else {
+				quietly levelsof `var' if `varName' == `varNum', clean
 		   }
 		   
+		   
+		   local toPrintValue = "`r(levels)'"
+		   //if variable has no labelbook
+		   if(`"`varlabel'"' == ""){
+				if `"`ignore'"' != "" {
+					foreach skip of local ignore {
+						if("`r(levels)'" == "`skip'"){
+							`doccmd' table tbl(`i', .), drop
+							local i = `i'-1
+							local skipRow = 1
+						}
+					}
+				}
+		   }
+		   else {
+				//account for missing values in labelbook
+				if("`r(levels)'"==""){
+					if("`longitudinal'" != ""){
+						quietly levelsof `var' if `id_wave' == `wave', missing
+					}
+					else{
+						quietly levelsof `var' if `varName' == `varNum', missing
+					}
+					
+				}
+				local toPrintValue : label `varlabel' `r(levels)', strict
+				//get rid of special character that cannot be outputted
+				local toPrintValue : subinstr local toPrintValue "`=char(96)'" "`=uchar(8219)'", all
+				if  "`r(levels)'" != "" & "`toPrintValue'"=="" {
+					local toPrintValue = "`r(levels)'"
+				}
+		   }
+		   
+		   //drop unwanted responses
+		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) {
+				`doccmd' table tbl(`i', .), drop
+				local i = `i'-1
+				local skipRow = 1
+		   }
+		   if `"`ignore'"' != "" {
+			   foreach skip of local ignore {
+				   if("`toPrintValue'" == "`skip'"){
+					   `doccmd' table tbl(`i', .), drop
+					   local i = `i'-1
+					   local skipRow = 1
+				   }
+			   }
+		   }
+		   //print value
+		   if(`skipRow' != 1){
+				local col = `wave'+2
+				`doccmd' table tbl(`i', `col') = ("`toPrintValue'")
+		   }	
+		   
+		   
+		   if(`skipRow' == 0) {
+			   // variable name
+			   local toPrintVar = `"`var'"'
+			   local toPrintVar : subinstr local toPrintVar "`=char(96)'" "`=uchar(8219)'", all
+			   `doccmd' table tbl(`i', 1) = (`"`toPrintVar'"')
+
+			   //variable label
+			   local label : variable label `var'
+			   local toPrintLabel = `"`label'"'
+			   local toPrintLabel : subinstr local toPrintLabel "`=char(96)'" "`=uchar(8219)'", all
+			   if("`addnotes'"!=""){
+					local toPrintNote : char `var'[note1]
+					if("`toPrintNote'"!=""){
+						local toPrintNote = "N: `toPrintNote'"
+						`doccmd' table tbl(`i', 2) = ("`toPrintLabel'"), linebreak
+						`doccmd' table tbl(`i', 2) = ("`toPrintNote'"), append font("`docFont'", 9)
+					}
+					else{
+						`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
+					}
+			   }
+			   else{
+					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
+			   }
+			   
+		   }
+	   
 	   }
+		
+
 	   
        local i = `i'+1
     }
