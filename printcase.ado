@@ -144,14 +144,7 @@ program printcase
 		`doccmd' table tbl(1,`col') = ("Response "+"`w'")
 	}
 	
-
     local i = 2
-	
-	//longitudinal plan: if selected, first find # variables with matching id_val
-	//preserve data, create temporary variable called id_wave = id_val_0...id_val_n n = # waves, add to list
-	//if longitudinal is selected, put levels of part in loop for each id_wave
-	//currently behavior for skip longitudinal is if one needs to be skipped they're all skipped
-	//also column names are always the same, "response 1" etc. leave like that?
 	
     foreach var in `dataVars' {
 		//Prevent rows from overflowing to next page
@@ -161,8 +154,9 @@ program printcase
 	   local skipRow = 0
 	   local varlabel : value label `var'
 	   
+	   //iterate through all waves
 	   forvalues wave = 1/`numWaves'{
-	   	
+		   
 		   if("`longitudinal'" != ""){
 				quietly levelsof `var' if `id_wave' == `wave', clean
 		   }
@@ -204,12 +198,12 @@ program printcase
 		   }
 		   
 		   //drop unwanted responses
-		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) {
+		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) & `skipRow' != 1 {
 				`doccmd' table tbl(`i', .), drop
 				local i = `i'-1
 				local skipRow = 1
 		   }
-		   if `"`ignore'"' != "" {
+		   if `"`ignore'"' != "" & `skipRow' != 1 {
 			   foreach skip of local ignore {
 				   if("`toPrintValue'" == "`skip'"){
 					   `doccmd' table tbl(`i', .), drop
@@ -222,7 +216,10 @@ program printcase
 		   if(`skipRow' != 1){
 				local col = `wave'+2
 				`doccmd' table tbl(`i', `col') = ("`toPrintValue'")
-		   }	
+		   }
+		   else {
+				continue, break
+		   }
 		   
 		   
 		   if(`skipRow' == 0) {
@@ -254,6 +251,7 @@ program printcase
 	   
 	   }
 		
+	
 
 	   
        local i = `i'+1
