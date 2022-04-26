@@ -146,10 +146,17 @@ program printcase
 	if("`unit'" != ""){
 		local colTitle = "`unit'"
 	}
-	forvalues w = 1/`numWaves'{
-		local col = 2+`w'
-		`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
+	if("`longitudinal'" != ""){
+		forvalues w = 1/`numWaves'{
+			local col = 2+`w'
+			`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
+		}
 	}
+	else {
+		`doccmd' table tbl(1,3) = ("`colTitle'")
+	}
+	
+
 	
     local i = 2
 
