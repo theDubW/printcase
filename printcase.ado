@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string asis) replace addnotes width(string) LONGitudinal unit(string)]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string asis) replace addnotes width(string) LONGitudinal unit(string) landscape]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
@@ -70,10 +70,13 @@ program printcase
 	local myFile = substr("`c(filename)'", `indexSlash'+1, strlen("`c(filename)'")-`indexSlash')
 	`doccmd' clear
 	
-	
+	local landsc = ""
+	if("`landscape'" != ""){
+		local landsc = "landscape"
+	}
 	//Title and setting up document
 	if("`pdf'"!=""){
-		putpdf begin, font("`docFont'")
+		putpdf begin, font("`docFont'") `landsc'
 		//Title
 		putpdf paragraph
 		putpdf text (`"`varName' `varNum'"'), font("`docFont'",30) bold
@@ -87,7 +90,7 @@ program printcase
 		putpdf text ("Date Printed: `c(current_date)'"), font("`docFont'",20)
 	}
 	else{
-		putdocx begin, pagenum(decimal) footer(footer1) font("`docFont'")
+		putdocx begin, pagenum(decimal) footer(footer1) font("`docFont'") `landsc'
 		//Title
 		putdocx paragraph, style(Title) 
 		putdocx text (`"`varName' `varNum'"'), font("`docFont'")
@@ -176,8 +179,6 @@ program printcase
 				if `"`ignore'"' != "" {
 					foreach skip of local ignore {
 						if("`r(levels)'" == "`skip'"){
-// 							`doccmd' table tbl(`i', .), drop
-// 							local i = `i'-1
 							local numSkips = `numSkips' + 1
 							continue, break
 						}
@@ -205,19 +206,12 @@ program printcase
 		   
 		   //drop unwanted responses
 		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")){
-// 				`doccmd' table tbl(`i', .), drop
-// 				local i = `i'-1
 				local numSkips = `numSkips' + 1
-// 				local skipRow = 1
 		   }
 		   else if (`"`ignore'"' != "") {
 			   foreach skip of local ignore {
 				   if("`toPrintValue'" == "`skip'"){
-// 					   `doccmd' table tbl(`i', .), drop
-// 					   local i = `i'-1
-						
 					   local numSkips = `numSkips' + 1
-// 					   local skipRow = 1
 					   continue, break
 				   }
 			   }
