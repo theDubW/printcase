@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string) replace addnotes width(string) longitudinal]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string asis) replace addnotes width(string) LONGitudinal unit(string)]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
@@ -139,13 +139,17 @@ program printcase
 	
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
+	local colTitle = "Response"
+	if("`unit'" != ""){
+		local colTitle = "`unit'"
+	}
 	forvalues w = 1/`numWaves'{
 		local col = 2+`w'
-		`doccmd' table tbl(1,`col') = ("Response "+"`w'")
+		`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
 	}
 	
     local i = 2
-	
+
     foreach var in `dataVars' {
 		//Prevent rows from overflowing to next page
 		`doccmd' table tbl(`i', .), nosplit
@@ -154,9 +158,10 @@ program printcase
 	   local skipRow = 0
 	   local varlabel : value label `var'
 	   
+	   //used to keep track of skip conditions in longitudinal cases
+	   local numSkips = 0
 	   //iterate through all waves
 	   forvalues wave = 1/`numWaves'{
-		   
 		   if("`longitudinal'" != ""){
 				quietly levelsof `var' if `id_wave' == `wave', clean
 		   }
@@ -171,9 +176,10 @@ program printcase
 				if `"`ignore'"' != "" {
 					foreach skip of local ignore {
 						if("`r(levels)'" == "`skip'"){
-							`doccmd' table tbl(`i', .), drop
-							local i = `i'-1
-							local skipRow = 1
+// 							`doccmd' table tbl(`i', .), drop
+// 							local i = `i'-1
+							local numSkips = `numSkips' + 1
+							continue, break
 						}
 					}
 				}
@@ -198,31 +204,37 @@ program printcase
 		   }
 		   
 		   //drop unwanted responses
-		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")) & `skipRow' != 1 {
-				`doccmd' table tbl(`i', .), drop
-				local i = `i'-1
-				local skipRow = 1
+		   if "`empty'"!="" & (regexm("`toPrintValue'", "(^\.[a-z]?$)|(^\s*$)")){
+// 				`doccmd' table tbl(`i', .), drop
+// 				local i = `i'-1
+				local numSkips = `numSkips' + 1
+// 				local skipRow = 1
 		   }
-		   if `"`ignore'"' != "" & `skipRow' != 1 {
+		   else if (`"`ignore'"' != "") {
 			   foreach skip of local ignore {
 				   if("`toPrintValue'" == "`skip'"){
-					   `doccmd' table tbl(`i', .), drop
-					   local i = `i'-1
-					   local skipRow = 1
+// 					   `doccmd' table tbl(`i', .), drop
+// 					   local i = `i'-1
+						
+					   local numSkips = `numSkips' + 1
+// 					   local skipRow = 1
+					   continue, break
 				   }
 			   }
-		   }
-		   //print value
-		   if(`skipRow' != 1){
-				local col = `wave'+2
-				`doccmd' table tbl(`i', `col') = ("`toPrintValue'")
-		   }
-		   else {
-				continue, break
-		   }
-		   
-		   
-		   if(`skipRow' == 0) {
+		   }		   
+		  
+			//print value
+			local col = `wave'+2
+			`doccmd' table tbl(`i', `col') = ("`toPrintValue'")
+	   
+	   }
+	   
+		
+		if(`numSkips' == `numWaves'){
+			`doccmd' table tbl(`i', .), drop
+			local i = `i' - 1
+		}
+		else {
 			   // variable name
 			   local toPrintVar = `"`var'"'
 			   local toPrintVar : subinstr local toPrintVar "`=char(96)'" "`=uchar(8219)'", all
@@ -247,12 +259,7 @@ program printcase
 					`doccmd' table tbl(`i', 2) = ("`toPrintLabel'")
 			   }
 			   
-		   }
-	   
-	   }
-		
-	
-
+		 }
 	   
        local i = `i'+1
     }
