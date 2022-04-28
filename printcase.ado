@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string asis) replace addnotes width(string) LONGitudinal unit(string) landscape]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) LONGitudinal unit(string) LANDscape]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""

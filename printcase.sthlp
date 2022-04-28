@@ -10,15 +10,18 @@
 
 
 {title:Syntax}
-
 {p 8 18 2}
 {cmd:printcase} [{it:using}] if {it:id_variable} == {it:id_val}{cmd:,}
- [{cmd:pdf}
- {cmd:font(}{it:string}{cmd:)}
- {cmd:noempty}
- {cmd:ignore(}{it:string}{cmd:)}
- {cmd:replace}
- {cmd:addnotes}]
+ [{opt pdf}
+ {opt font(string)}
+ {opt noe:mpty}
+ {opt ig:nore(string)}
+ {opt replace}
+ {opt addn:otes}
+ {cmd:width(}{it:#}[{help putdocx_table##unit:{it:unit}}{c |}{cmd:%}] {c |} {help putdocx_table##matname:{it:matname}}{cmd:)}
+ {opt long:itudinal}
+ {opt unit(string)}
+ {opt land:scape}]
  
 	Given the {it:id_variable} in the current dataset, the case whose response to
 	{it:id_variable} is equal to {it:id_val} will be used by printcase as
@@ -51,19 +54,30 @@ the output of printcase. Any installed font can be specified. If not
 set, the default is Arial.
 
 {phang}
-{opt noempty} suppresse sall empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing valuecode
-(“.”, “.d”, etc.). If not specified, all empty responses will be included.
+{opt noe:mpty} suppress all empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing valuecode
+(“.”, “.d”, etc.). If not specified, all empty responses will be included. For longitudinal cases, all responses must match an empty value for the variable to be ignored.
 
 {phang}
-{opt ignore(string)} allows users to specify variables to be ignored based on the values, for
-example missing strings “” general missing“.” or skipped values “.s” if the dataset distinguishes. (Other datasets use “99” or other codes.)  The result in the output document will not include those variables or their responses. There is no limit on the number of responses to ignore.
+{opt ig:nore(string)} allows users to specify variables to be ignored based on the values, for
+example missing strings “” general missing“.” or skipped values “.s” if the dataset distinguishes. (Other datasets use “99” or other codes.)  The result in the output document will not include those variables or their responses. There is no limit on the number of responses to ignore. For longitudinal cases, all responses must match an ignorable string for the variable to be ignored.
 
 {phang}
 {opt replace} overwrites an existing printed case.
 
 {phang}
-{opt addnotes} includes the first note on any variable in the variable label column. Only the first note is included in the printed case.
+{opt addn:otes} includes the first note on any variable in the variable label column.
 
+{phang}
+{opt width} specifies the width of the columns to be printed with standard Stata syntax. See {help putdocx_table##unit:{it:unit}} and {help putdocx_table##matname:{it:matname}} for the specifics of formatting input. 
+
+{phang}
+{opt long:itudinal} is used for datasets with multiple cases whose {it:id_variable} equals {it:id_val}. Each response to a variable by a matching case will be printed in its own column in the output document.
+
+{phang}
+{opt unit(string)} changes the default title for the response column(s) (3rd column onwards) from "Response" to the specified string.
+
+{phang}
+{opt land:scape} formats the output document to be landscape.
 
 {title:Examples}
 
