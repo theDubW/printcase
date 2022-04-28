@@ -54,12 +54,14 @@ the output of printcase. Any installed font can be specified. If not
 set, the default is Arial.
 
 {phang}
-{opt noe:mpty} suppress all empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing valuecode
-(“.”, “.d”, etc.). If not specified, all empty responses will be included. For longitudinal cases, all responses must match an empty value for the variable to be ignored.
+{opt noe:mpty} suppresses all empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing value
+code (“.”, “.d”, etc.). If not specified, all empty responses will be included. In longitudinal cases, variable rows are only suppressed if variables are empty for all observations.
 
 {phang}
 {opt ig:nore(string)} allows users to specify variables to be ignored based on the values, for
-example missing strings “” general missing“.” or skipped values “.s” if the dataset distinguishes. (Other datasets use “99” or other codes.)  The result in the output document will not include those variables or their responses. There is no limit on the number of responses to ignore. For longitudinal cases, all responses must match an ignorable string for the variable to be ignored.
+example missing strings “” general missing“.” or skipped values “.s” if the dataset distinguishes. (Other datasets use “99” or other codes.)  The result in the output document will not include those variables or their responses.
+There is no limit on the number of responses to ignore. In longitudinal cases, variable rows are only suppressed if variables match an ignorable value for all observations.
+
 
 {phang}
 {opt replace} overwrites an existing printed case.
@@ -71,13 +73,13 @@ example missing strings “” general missing“.” or skipped values “.s”
 {opt width} specifies the width of the columns to be printed with standard Stata syntax. See {help putdocx_table##unit:{it:unit}} and {help putdocx_table##matname:{it:matname}} for the specifics of formatting input. 
 
 {phang}
-{opt long:itudinal} is used for datasets with multiple cases whose {it:id_variable} equals {it:id_val}. Each response to a variable by a matching case will be printed in its own column in the output document.
+{opt long:itudinal} indicates that the case id is non-unique and that nested values (time or observations) should be presented in columns.
 
 {phang}
 {opt unit(string)} changes the default title for the response column(s) (3rd column onwards) from "Response" to the specified string.
 
 {phang}
-{opt land:scape} formats the output document to be landscape.
+{opt land:scape} changes the paper orientation from portrait (the default) to landscape.
 
 {title:Examples}
 
