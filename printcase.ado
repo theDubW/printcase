@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) LONGitudinal unit(string) LANDscape]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) LONGitudinal unit(string) LANDscape noheader nofooter]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
@@ -51,6 +51,17 @@ program printcase
 		}
 	}
 	
+	//checking the types of varName and varNum. Must be of same type (either numeric or string)
+	local varType = "num"
+	di "Testing type"
+	capture confirm numeric variable `varName'
+	local varTarget `varNum'
+	if(_rc != 0){
+		local varType = "str"
+		local varTarget "`varNum'"
+	}
+	di `varTarget'
+	
 	
     //Setting up documents, either pdf or word
 	display "ID Variable: `varName'"
@@ -82,12 +93,14 @@ program printcase
 		putpdf text (`"`varName' `varNum'"'), font("`docFont'",30) bold
 		
 		//Headers
-		putpdf paragraph
-		putpdf text ("User: `c(username)'"), font("`docFont'",20)
-		putpdf paragraph
-		putpdf text (`"`myFile'"'), font("`docFont'",20)
-		putpdf paragraph
-		putpdf text ("Date Printed: `c(current_date)'"), font("`docFont'",20)
+		if("`header'" == ""){
+			putpdf paragraph
+			putpdf text ("User: `c(username)'"), font("`docFont'",20)
+			putpdf paragraph
+			putpdf text (`"`myFile'"'), font("`docFont'",20)
+			putpdf paragraph
+			putpdf text ("Date Printed: `c(current_date)'"), font("`docFont'",20)
+		}
 	}
 	else{
 		putdocx begin, pagenum(decimal) footer(footer1) font("`docFont'") `landsc'
@@ -97,17 +110,20 @@ program printcase
 
 		
 		//Headers
-		putdocx paragraph, style(Heading1) 
-		putdocx text ("User: `c(username)'"), font("`docFont'")
-		putdocx paragraph, style(Heading1)
-		putdocx text (`"`myFile'"'), font("`docFont'")
-		putdocx paragraph, style(Heading1)
-		putdocx text ("Date Printed: `c(current_date)'"), font("`docFont'")
-
+		if("`header'" == ""){
+			putdocx paragraph, style(Heading1) 
+			putdocx text ("User: `c(username)'"), font("`docFont'")
+			putdocx paragraph, style(Heading1)
+			putdocx text (`"`myFile'"'), font("`docFont'")
+			putdocx paragraph, style(Heading1)
+			putdocx text ("Date Printed: `c(current_date)'"), font("`docFont'")
+		}
 		//Pagenumbers + footer1
-		putdocx paragraph, tofooter(footer1)
-		putdocx pagenumber
-		putdocx text ("		printcase_`varNum'_`myFile'")
+		if("`footer'" == ""){
+			putdocx paragraph, tofooter(footer1)
+			putdocx pagenumber
+			putdocx text ("		printcase_`varNum'_`myFile'")
+		}
 	}
 	`doccmd' paragraph
 
@@ -124,10 +140,20 @@ program printcase
 	if("`longitudinal'" != ""){
 		preserve
 		//find # waves
-		quietly count if `varName' == `varNum'
+		if("`varType'" == "num"){
+			quietly count if `varName' == `varNum'
+		}
+		else {
+			quietly count if `varName' == "`varNum'"
+		}
 		local numWaves = `r(N)'
-		sort `varName'
-		quietly by `varName': generate `id_wave' = _n if `varName' == `varNum'
+		sort `varName', stable
+		if("`varType'" == "num"){
+			quietly by `varName': generate `id_wave' = _n if `varName' == `varNum'
+		}
+		else {
+			quietly by `varName': generate `id_wave' = _n if `varName' == "`varNum'"
+		}
 		local colNum = 2+`numWaves'
 	}
 
@@ -176,7 +202,12 @@ program printcase
 				quietly levelsof `var' if `id_wave' == `wave', clean
 		   }
 		   else {
-				quietly levelsof `var' if `varName' == `varNum', clean
+				if("`varType'" == "num"){
+					quietly levelsof `var' if `varName' == `varNum', clean
+				}
+				else {
+					quietly levelsof `var' if `varName' == "`varNum'", clean
+				}
 		   }
 		   
 		   
@@ -199,7 +230,12 @@ program printcase
 						quietly levelsof `var' if `id_wave' == `wave', missing
 					}
 					else{
-						quietly levelsof `var' if `varName' == `varNum', missing
+						if("`varType'" == "num"){
+							quietly levelsof `var' if `varName' == `varNum', missing
+						}
+						else {
+							quietly levelsof `var' if `varName' == "`varNum'", missing
+						}
 					}
 					
 				}
