@@ -2,13 +2,13 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) LONGitudinal unit(string) LANDscape noheader nofooter]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) unit(string) LANDscape noheader nofooter]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
 	local varNum = ""
 	
-	//Checking for correct syntax and assigning macros
+	//checking for correct syntax and assigning macros
 	if("`2'" != "=="){
 		display "Must have '==' expression"
 		error 198
@@ -18,7 +18,9 @@ program printcase
 		display "Cannot have empty id_val"
 		error 198
 	}
+	
 	local varNum = "`3'"
+	
 
 	tokenize `1'
 	
@@ -55,12 +57,9 @@ program printcase
 	local varType = "num"
 	di "Testing type"
 	capture confirm numeric variable `varName'
-	local varTarget `varNum'
 	if(_rc != 0){
 		local varType = "str"
-		local varTarget "`varNum'"
 	}
-	di `varTarget'
 	
 	
     //Setting up documents, either pdf or word
@@ -137,25 +136,25 @@ program printcase
 	local colNum = 3
 	local numWaves = 1
 	tempvar id_wave
-	if("`longitudinal'" != ""){
-		preserve
-		//find # waves
-		if("`varType'" == "num"){
-			quietly count if `varName' == `varNum'
-		}
-		else {
-			quietly count if `varName' == "`varNum'"
-		}
-		local numWaves = `r(N)'
-		sort `varName', stable
-		if("`varType'" == "num"){
-			quietly by `varName': generate `id_wave' = _n if `varName' == `varNum'
-		}
-		else {
-			quietly by `varName': generate `id_wave' = _n if `varName' == "`varNum'"
-		}
-		local colNum = 2+`numWaves'
+	
+	preserve
+	//find # waves
+	if("`varType'" == "num"){
+		quietly count if `varName' == `varNum'
 	}
+	else {
+		quietly count if `varName' == "`varNum'"
+	}
+	local numWaves = `r(N)'
+	sort `varName', stable
+	if("`varType'" == "num"){
+		quietly by `varName': generate `id_wave' = _n if `varName' == `varNum'
+	}
+	else {
+		quietly by `varName': generate `id_wave' = _n if `varName' == "`varNum'"
+	}
+	local colNum = 2+`numWaves'
+	
 
     //Initializing table
 	if("`width'" != ""){
@@ -172,15 +171,13 @@ program printcase
 	if("`unit'" != ""){
 		local colTitle = "`unit'"
 	}
-	if("`longitudinal'" != ""){
-		forvalues w = 1/`numWaves'{
-			local col = 2+`w'
-			`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
-		}
+	
+	forvalues w = 1/`numWaves'{
+		local col = 2+`w'
+		`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
 	}
-	else {
-		`doccmd' table tbl(1,3) = ("`colTitle'")
-	}
+	
+	
 	
 
 	
@@ -198,18 +195,16 @@ program printcase
 	   local numSkips = 0
 	   //iterate through all waves
 	   forvalues wave = 1/`numWaves'{
-		   if("`longitudinal'" != ""){
-				quietly levelsof `var' if `id_wave' == `wave', clean
-		   }
-		   else {
-				if("`varType'" == "num"){
-					quietly levelsof `var' if `varName' == `varNum', clean
-				}
-				else {
-					quietly levelsof `var' if `varName' == "`varNum'", clean
-				}
-		   }
+		   quietly levelsof `var' if `id_wave' == `wave', clean
 		   
+// 		   else {
+// 				if("`varType'" == "num"){
+// 					quietly levelsof `var' if `varName' == `varNum', clean
+// 				}
+// 				else {
+// 					quietly levelsof `var' if `varName' == "`varNum'", clean
+// 				}
+// 		   }
 		   
 		   local toPrintValue = "`r(levels)'"
 		   //if variable has no labelbook
@@ -226,18 +221,18 @@ program printcase
 		   else {
 				//account for missing values in labelbook
 				if("`r(levels)'"==""){
-					if("`longitudinal'" != ""){
-						quietly levelsof `var' if `id_wave' == `wave', missing
-					}
-					else{
-						if("`varType'" == "num"){
-							quietly levelsof `var' if `varName' == `varNum', missing
-						}
-						else {
-							quietly levelsof `var' if `varName' == "`varNum'", missing
-						}
-					}
 					
+					quietly levelsof `var' if `id_wave' == `wave', missing
+					
+// 					else{
+// 						if("`varType'" == "num"){
+// 							quietly levelsof `var' if `varName' == `varNum', missing
+// 						}
+// 						else {
+// 							quietly levelsof `var' if `varName' == "`varNum'", missing
+// 						}
+// 					}
+//					
 				}
 				local toPrintValue : label `varlabel' `r(levels)', strict
 				//get rid of special character that cannot be outputted
@@ -311,6 +306,9 @@ program printcase
 		`doccmd' save "`fileName'", `temp_replace'
 	}
 	else{
-		`doccmd' save "`varName'`varNum'", `temp_replace'
+		//clean varNum to remove any characters that cannot be in a valid filename
+		local cleanVarNum = regexr("`varNum'", "[\\\/:\.*?<>|\[\]]+", "")
+		di "saving doc"
+		`doccmd' save "`varName'`cleanVarNum'", `temp_replace'
 	}
 end
