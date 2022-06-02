@@ -2,7 +2,7 @@
 program printcase
     version 17.0
 
-	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) NOEmpty IGnore(string asis) replace ADDNotes width(string) unit(string) LANDscape noheader nofooter]
+	syntax anything(everything id = "if id_variable == id_val"), [pdf font(string) noempty ignore(string asis) replace ADDNotes width(string) unit(string) LANDscape noheader nofooter]
 	tokenize `anything', parse("==")
 	local fileName = ""
 	local varName = ""
@@ -55,7 +55,6 @@ program printcase
 	
 	//checking the types of varName and varNum. Must be of same type (either numeric or string)
 	local varType = "num"
-	di "Testing type"
 	capture confirm numeric variable `varName'
 	if(_rc != 0){
 		local varType = "str"
@@ -163,8 +162,7 @@ program printcase
 	else {
 		`doccmd' table tbl = (`rowNum', `colNum')
 	}
-	
-	
+		
 	`doccmd' table tbl(1,1) = ("Variable Name")
 	`doccmd' table tbl(1,2) = ("Variable Label")
 	local colTitle = "Response"
@@ -177,10 +175,7 @@ program printcase
 		`doccmd' table tbl(1,`col') = ("`colTitle' "+"`w'")
 	}
 	
-	
-	
-
-	
+		
     local i = 2
 
     foreach var in `dataVars' {
@@ -197,42 +192,12 @@ program printcase
 	   forvalues wave = 1/`numWaves'{
 		   quietly levelsof `var' if `id_wave' == `wave', clean
 		   
-// 		   else {
-// 				if("`varType'" == "num"){
-// 					quietly levelsof `var' if `varName' == `varNum', clean
-// 				}
-// 				else {
-// 					quietly levelsof `var' if `varName' == "`varNum'", clean
-// 				}
-// 		   }
-		   
 		   local toPrintValue = "`r(levels)'"
 		   //if variable has no labelbook
-		   if(`"`varlabel'"' == ""){
-				if `"`ignore'"' != "" {
-					foreach skip of local ignore {
-						if("`r(levels)'" == "`skip'"){
-							local numSkips = `numSkips' + 1
-							continue, break
-						}
-					}
-				}
-		   }
-		   else {
+		   if(`"`varlabel'"' != ""){
 				//account for missing values in labelbook
 				if("`r(levels)'"==""){
-					
 					quietly levelsof `var' if `id_wave' == `wave', missing
-					
-// 					else{
-// 						if("`varType'" == "num"){
-// 							quietly levelsof `var' if `varName' == `varNum', missing
-// 						}
-// 						else {
-// 							quietly levelsof `var' if `varName' == "`varNum'", missing
-// 						}
-// 					}
-//					
 				}
 				local toPrintValue : label `varlabel' `r(levels)', strict
 				//get rid of special character that cannot be outputted
@@ -307,8 +272,6 @@ program printcase
 	}
 	else{
 		//clean varNum to remove any characters that cannot be in a valid filename
-		local cleanVarNum = regexr("`varNum'", "[\\\/:\.*?<>|\[\]]+", "")
-		di "saving doc"
-		`doccmd' save "`varName'`cleanVarNum'", `temp_replace'
+		`doccmd' save "`varName'`varNum'", `temp_replace'
 	}
 end
