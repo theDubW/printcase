@@ -153,7 +153,6 @@ program printcase
 		quietly by `varName': generate `id_wave' = _n if `varName' == "`varNum'"
 	}
 	local colNum = 2+`numWaves'
-	
 
     //Initializing table
 	if("`width'" != ""){
