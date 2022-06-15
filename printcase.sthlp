@@ -14,19 +14,19 @@
 {cmd:printcase} [{it:using}] if {it:id_variable} == {it:id_val}{cmd:,}
  [{opt pdf}
  {opt font(string)}
- {opt noe:mpty}
- {opt ig:nore(string)}
+ {opt noempty}
+ {opt ignore(string)}
  {opt replace}
  {opt addn:otes}
  {cmd:width(}{it:#}[{help putdocx_table##unit:{it:unit}}{c |}{cmd:%}] {c |} {help putdocx_table##matname:{it:matname}}{cmd:)}
- {opt long:itudinal}
  {opt unit(string)}
  {opt land:scape}]
+ {opt noheader}
+ {opt nofooter}
  
 	Given the {it:id_variable} in the current dataset, the case whose response to
 	{it:id_variable} is equal to {it:id_val} will be used by printcase as
-	the case to output. {it:id_variable} and {it:id_val} both must contain no spaces,
-	and {it:id_val} must be a number.
+	the case to output.
 	The {it:using} argument is optional, and if specified will set the filename and
 	address for the printcase output file.
  
@@ -54,11 +54,11 @@ the output of printcase. Any installed font can be specified. If not
 set, the default is Arial.
 
 {phang}
-{opt noe:mpty} suppresses all empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing value
+{opt noempty} suppresses all empty and system missing responses and their variables from the resulting table, if the value label is an empty string (i.e., “”) or a Stata missing value
 code (“.”, “.d”, etc.). If not specified, all empty responses will be included. In longitudinal cases, variable rows are only suppressed if variables are empty for all observations.
 
 {phang}
-{opt ig:nore(string)} allows users to specify variables to be ignored based on the values, for
+{opt ignore(string)} allows users to specify variables to be ignored based on the values, for
 example missing strings “” general missing“.” or skipped values “.s” if the dataset distinguishes. (Other datasets use “99” or other codes.)  The result in the output document will not include those variables or their responses.
 There is no limit on the number of responses to ignore. In longitudinal cases, variable rows are only suppressed if variables match an ignorable value for all observations.
 
@@ -71,9 +71,6 @@ There is no limit on the number of responses to ignore. In longitudinal cases, v
 
 {phang}
 {opt width} specifies the width of the columns to be printed with standard Stata syntax. See {help putdocx_table##unit:{it:unit}} and {help putdocx_table##matname:{it:matname}} for the specifics of formatting input. 
-
-{phang}
-{opt long:itudinal} indicates that the case id is non-unique and that nested values (time or observations) should be presented in columns.
 
 {phang}
 {opt unit(string)} changes the default title for the response column(s) (3rd column onwards) from "Response" to the specified string.
