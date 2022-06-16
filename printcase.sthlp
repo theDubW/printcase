@@ -20,9 +20,10 @@
  {opt addn:otes}
  {cmd:width(}{it:#}[{help putdocx_table##unit:{it:unit}}{c |}{cmd:%}] {c |} {help putdocx_table##matname:{it:matname}}{cmd:)}
  {opt unit(string)}
- {opt land:scape}]
+ {opt land:scape}
  {opt noheader}
- {opt nofooter}
+ {opt nofooter}]
+
  
 	Given the {it:id_variable} in the current dataset, the case whose response to
 	{it:id_variable} is equal to {it:id_val} will be used by printcase as
@@ -77,6 +78,12 @@ There is no limit on the number of responses to ignore. In longitudinal cases, v
 
 {phang}
 {opt land:scape} changes the paper orientation from portrait (the default) to landscape.
+
+{phang}
+{opt noheader} suppresses the default header in the output document.
+
+{phang}
+{opt nofooter} suppresses the default footer in a word document output. 
 
 {title:Examples}
 
