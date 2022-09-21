@@ -314,7 +314,7 @@ example.
 
 Figure 1. Screenshot of printcase output from Example 2b.
 
-![alt text](https://github.com/theDubW/printcase/blob/master/Images/Example2.PNG)
+![alt text](https://github.com/theDubW/printcase/blob/master/Images/Example2.png?raw=true)
 
 Note: Figure 1 shows an extract from example 1, where variable name,
 labels, and responses are displayed in three columns.
@@ -364,7 +364,7 @@ associated cases.
 
 Figure 2. Screenshot of printcase output from Example 3.
 
-![alt text](https://github.com/theDubW/printcase/blob/master/Images/Example3.PNG)
+![alt text](https://github.com/theDubW/printcase/blob/master/Images/Example3.png?raw=true)
 
 Note: Figure 2 shows an extract from Example 3, where responses from
 three cases corresponding to a non-unique id variable are displayed in
